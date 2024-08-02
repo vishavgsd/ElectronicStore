@@ -2,11 +2,24 @@ package com.mycompany.electronicstore.services.impl;
 
 import com.mycompany.electronicstore.dtos.UserDto;
 import com.mycompany.electronicstore.entities.User;
+import com.mycompany.electronicstore.exceptions.ResourceNotFoundException;
 import com.mycompany.electronicstore.repositories.UserRepository;
 import com.mycompany.electronicstore.services.UserService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -16,6 +29,12 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     UserRepository userRepository;
+
+    @Value("${user.profile.image.path}")
+    private String imagePath;
+
+    private Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
+
     @Override
     public UserDto createUser(UserDto userDto) {
         String userId = UUID.randomUUID().toString();
@@ -54,7 +73,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto updateUser(String userId, UserDto userDto) {
-        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found with given id"));
+        User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User not found with given id"));
         user.setName(userDto.getName());
         user.setAbout(userDto.getAbout());
         user.setGender(userDto.getGender());
@@ -68,25 +87,38 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void deleteUser(String userId) {
-        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found with given id"));
+        User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User not found with given id"));
+        String fullPath = imagePath + user.getImageName();
+        try{
+            Path path = Paths.get(fullPath);
+            Files.delete(path);
+        }catch (NoSuchFileException exception){
+            logger.info("User image not found in folder");
+            exception.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         userRepository.delete(user);
     }
 
     @Override
     public UserDto getUserById(String userId) {
-        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found with given id"));
+        User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User not found with given id"));
         return entityToDto(user);
     }
 
     @Override
     public UserDto getUserByEmail(String email) {
-        User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found with given email"));
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new ResourceNotFoundException("User not found with given email"));
         return entityToDto(user);
     }
 
     @Override
-    public List<UserDto> getAllUsers() {
-        List<User> users = userRepository.findAll();
+    public List<UserDto> getAllUsers(int pageNumber, int pageSize, String sortBy, String sortDir) {
+        Sort sort = (sortDir.equalsIgnoreCase("desc")) ? (Sort.by(sortBy).descending()) : (Sort.by(sortBy).ascending());
+        Pageable pageable = PageRequest.of(pageNumber, pageSize, sort);
+        Page<User> page = userRepository.findAll(pageable);
+        List<User> users = page.getContent();
         List<UserDto> dtoList = users.stream().map(user -> entityToDto(user)).collect(Collectors.toList());
         return dtoList;
     }
