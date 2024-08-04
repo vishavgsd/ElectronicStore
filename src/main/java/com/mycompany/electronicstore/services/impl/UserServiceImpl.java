@@ -1,8 +1,10 @@
 package com.mycompany.electronicstore.services.impl;
 
+import com.mycompany.electronicstore.dtos.PageableResponse;
 import com.mycompany.electronicstore.dtos.UserDto;
 import com.mycompany.electronicstore.entities.User;
 import com.mycompany.electronicstore.exceptions.ResourceNotFoundException;
+import com.mycompany.electronicstore.helper.Helper;
 import com.mycompany.electronicstore.repositories.UserRepository;
 import com.mycompany.electronicstore.services.UserService;
 import org.slf4j.Logger;
@@ -114,13 +116,12 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<UserDto> getAllUsers(int pageNumber, int pageSize, String sortBy, String sortDir) {
+    public PageableResponse<UserDto> getAllUsers(int pageNumber, int pageSize, String sortBy, String sortDir) {
         Sort sort = (sortDir.equalsIgnoreCase("desc")) ? (Sort.by(sortBy).descending()) : (Sort.by(sortBy).ascending());
         Pageable pageable = PageRequest.of(pageNumber, pageSize, sort);
         Page<User> page = userRepository.findAll(pageable);
-        List<User> users = page.getContent();
-        List<UserDto> dtoList = users.stream().map(user -> entityToDto(user)).collect(Collectors.toList());
-        return dtoList;
+        PageableResponse<UserDto> pageableResponse = Helper.getPageableResponse(page, UserDto.class);
+        return pageableResponse;
     }
 
     @Override

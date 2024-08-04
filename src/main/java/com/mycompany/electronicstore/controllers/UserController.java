@@ -2,6 +2,7 @@ package com.mycompany.electronicstore.controllers;
 
 import com.mycompany.electronicstore.dtos.ApiResponseMessage;
 import com.mycompany.electronicstore.dtos.ImageResponse;
+import com.mycompany.electronicstore.dtos.PageableResponse;
 import com.mycompany.electronicstore.dtos.UserDto;
 import com.mycompany.electronicstore.services.FileService;
 import com.mycompany.electronicstore.services.UserService;
@@ -62,7 +63,7 @@ public class UserController {
     }
 
     @GetMapping
-    public ResponseEntity<List<UserDto>> getAllUsers(
+    public ResponseEntity<PageableResponse<UserDto>> getAllUsers(
             @RequestParam(value = "pageNumber", defaultValue = "0", required = false) int pageNumber,
             @RequestParam(value = "pageSize", defaultValue = "10", required = false)  int pageSize,
             @RequestParam(value = "sortBy", defaultValue = "name", required = false)  String sortBy,
