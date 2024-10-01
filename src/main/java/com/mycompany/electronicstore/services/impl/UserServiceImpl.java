@@ -97,8 +97,8 @@ public class UserServiceImpl implements UserService {
         }catch (NoSuchFileException exception){
             logger.info("User image not found in folder");
             exception.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (IOException ioException) {
+            ioException.printStackTrace();
         }
         userRepository.delete(user);
     }

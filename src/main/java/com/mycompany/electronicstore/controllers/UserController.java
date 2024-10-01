@@ -108,14 +108,14 @@ public class UserController {
     }
 
     @GetMapping("/image/{userId}")
-    public void serveUserImage(@PathVariable("userId") String userId, HttpServletResponse response) throws IOException {
+    public void serveUserImage(@PathVariable("userId") String userId, HttpServletResponse httpServletResponse) throws IOException {
 
         UserDto userDto = userService.getUserById(userId);
         logger.info("User Image Name : {} ", userDto.getImageName());
-        InputStream resource = fileService.getResource(imageUploadPath, userDto.getImageName());
+        InputStream inputStream = fileService.getResource(imageUploadPath, userDto.getImageName());
 
-        response.setContentType(MediaType.IMAGE_JPEG_VALUE);
-        StreamUtils.copy(resource, response.getOutputStream());
+        httpServletResponse.setContentType(MediaType.IMAGE_JPEG_VALUE);
+        StreamUtils.copy(inputStream, httpServletResponse.getOutputStream());
     }
 
 }
