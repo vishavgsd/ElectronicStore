@@ -1,10 +1,10 @@
 package com.mycompany.electronicstore.entities;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Setter
@@ -21,10 +21,12 @@ public class User {
     private String name;
     @Column(name = "user_email", unique = true)
     private String email;
-    @Column(name = "user_password", length = 10)
+    @Column(name = "user_password", length = 30)
     private String password;
     private String gender;
     private String about;
     @Column(name = "user_image_name")
     private String imageName;
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
+    private List<Order> orders = new ArrayList<>();
 }

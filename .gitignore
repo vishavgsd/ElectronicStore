@@ -31,3 +31,11 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Don't track images ###
+images/
+
+### Don't track hidden files ###
+.*
+
+### rrrrr ###
