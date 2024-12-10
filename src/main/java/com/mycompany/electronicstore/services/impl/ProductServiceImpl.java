@@ -137,6 +137,7 @@ public class ProductServiceImpl implements ProductService {
         productDto.setAddedDate(new Date());
         Product product = modelMapper.map(productDto, Product.class);
         product.setCategory(category);
+        category.getProductsList().add(product);
         Product savedProduct = productRepository.save(product);
         ProductDto savedProductDto = modelMapper.map(savedProduct, ProductDto.class);
         return savedProductDto;
@@ -147,6 +148,7 @@ public class ProductServiceImpl implements ProductService {
         Product product = productRepository.findById(productId).orElseThrow(() -> new ResourceNotFoundException("Product not found !!"));
         Category category = categoryRepository.findById(categoryId).orElseThrow(() -> new ResourceNotFoundException("Category not found !!"));
         product.setCategory(category);
+        category.getProductsList().add(product);
         Product updatedProduct = productRepository.save(product);
         ProductDto updatedProductDto = modelMapper.map(updatedProduct, ProductDto.class);
         return updatedProductDto;

@@ -13,6 +13,7 @@ import com.mycompany.electronicstore.repositories.CartRepository;
 import com.mycompany.electronicstore.repositories.ProductRepository;
 import com.mycompany.electronicstore.repositories.UserRepository;
 import com.mycompany.electronicstore.services.CartService;
+import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -25,6 +26,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 @Service
+@Transactional
 public class CartServiceImpl implements CartService {
 
     @Autowired
@@ -61,20 +63,29 @@ public class CartServiceImpl implements CartService {
             cart = new Cart();
             cart.setCartId(UUID.randomUUID().toString());
             cart.setCreatedAt(new Date());
+            cart.setUser(user);
         }
 
         AtomicReference<Boolean> updated = new AtomicReference<>(false);
         List<CartItem> cartItems = cart.getCartItems();
-        List<CartItem> updatedItems = cartItems.stream().map(item -> {
+//        List<CartItem> updatedItems = cartItems.stream().map(item -> {
+//
+//            if(item.getProduct().getProductId().equals(productId)){
+//                item.setQuantity(quantity);
+//                item.setTotalPrice(product.getDiscountedPrice() * quantity);
+//                updated.set(true);
+//            }
+//            return item;
+//        }).collect(Collectors.toList());
+//        cart.setCartItems(updatedItems);
 
-            if(item.getProduct().getProductId().equals(productId)){
+        cartItems.forEach(item -> {
+            if (item.getProduct().getProductId().equals(productId)) {
                 item.setQuantity(quantity);
                 item.setTotalPrice(product.getDiscountedPrice() * quantity);
                 updated.set(true);
             }
-            return item;
-        }).collect(Collectors.toList());
-        cart.setCartItems(updatedItems);
+        });
 
         if(!updated.get()){
             CartItem cartItem = CartItem.builder()
@@ -86,7 +97,6 @@ public class CartServiceImpl implements CartService {
             cart.getCartItems().add(cartItem);
         }
 
-        cart.setUser(user);
         Cart  updatedCart = cartRepository.save(cart);
         CartDto updatedCartDto = modelMapper.map(updatedCart, CartDto.class);
         return updatedCartDto;
@@ -95,18 +105,27 @@ public class CartServiceImpl implements CartService {
     @Override
     public void removeItemFromCart(String userId, int cartItemId) {
 
-        User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User not found"));
-        Cart cart = cartRepository.findByUser(user).orElseThrow(() -> new ResourceNotFoundException("Cart not found"));
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        Cart cart = cartRepository.findByUser(user)
+                .orElseThrow(() -> new ResourceNotFoundException("Cart not found"));
 
-        // Remove the cart item with the specified cartItemId
-        boolean removed = cart.getCartItems().removeIf(item -> item.getCartItemId() == cartItemId);
+ //       cart.getCartItems().removeIf(item -> item.getCartItemId() == cartItemId);
 
-        // If no item was removed, it means the item was not found in the cart
-        if (!removed) {
-            throw new ResourceNotFoundException("Cart item not found");
-        }
+        // Find the CartItem to be removed
+        CartItem cartItemToRemove = cart.getCartItems().stream()
+                .filter(item -> item.getCartItemId() == cartItemId)
+                .findFirst()
+                .orElseThrow(() -> new ResourceNotFoundException("Cart item not found"));
 
-        // Save the updated cart back to the repository
+        // Nullify references for cleanup
+        cartItemToRemove.setProduct(null);
+        cartItemToRemove.setCart(null);
+
+        // Remove the CartItem from the collection
+        cart.getCartItems().remove(cartItemToRemove);
+
+        // Save the updated cart
         cartRepository.save(cart);
     }
 

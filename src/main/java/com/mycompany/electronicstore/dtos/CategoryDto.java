@@ -26,5 +26,5 @@ public class CategoryDto {
     @NotBlank(message = "Cover Image is mandatory !!")
     private String coverImage;
 
-    private List<ProductDto> productDtoList = new ArrayList<>();
+  //  private List<ProductDto> productDtoList = new ArrayList<>();
 }

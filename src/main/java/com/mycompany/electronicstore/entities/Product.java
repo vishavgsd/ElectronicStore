@@ -23,7 +23,7 @@ public class Product {
     private int quantity;
     private Date addedDate;
     private boolean live;
-    private boolean Stock;
+    private boolean stock;
     private String productImageName;
 
     @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)

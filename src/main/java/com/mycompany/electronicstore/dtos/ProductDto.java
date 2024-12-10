@@ -19,7 +19,7 @@ public class ProductDto {
     private int quantity;
     private Date addedDate;
     private boolean live;
-    private boolean Stock;
+    private boolean stock;
     private String productImageName;
 
     private CategoryDto categoryDto;
